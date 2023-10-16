@@ -1,0 +1,54 @@
+<head>
+  <style> body { margin: 0; } </style>
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/three-spritetext"></script>
+  <script src="https://unpkg.com/3d-force-graph"></script>
+</head>
+
+<body>
+  <div id="3d-graph"></div>
+  <script type="importmap">{ "imports": { "three": "//unpkg.com/three/build/three.module.js" }}</script>
+  <script type="module">
+    import { UnrealBloomPass } from '//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+
+    const colors = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"]
+    const Graph = ForceGraph3D()
+      (document.getElementById('3d-graph'))
+        .backgroundColor('#000003')
+        .jsonUrl('data_coauthors.json')
+        .nodeLabel(node => {
+          return node.name + '<br>' + node.citedby.toString() + ' citations<br>' + node.pubnum + ' publications'
+        })
+        .nodeThreeObject(node => 
+          new THREE.Mesh(
+            node.academic ?
+              new THREE.SphereGeometry((node.citedby) / 2000) :
+              new THREE.BoxGeometry((node.citedby) / 2000, (node.citedby) / 2000, (node.citedby) / 2000),
+            new THREE.MeshLambertMaterial({
+              color: colors[node.group],
+              transparent: true,
+              opacity: 0.75
+            })
+          ))
+        .linkOpacity(0.75)
+        .linkLabel(link => {
+          return link.value
+        })
+        .linkWidth(link => {
+          return link.value / 10
+        })
+        .onNodeDragEnd(node => {
+          node.fx = node.x;
+          node.fy = node.y;
+          node.fz = node.z;
+        })
+        ;
+
+        const bloomPass = new UnrealBloomPass();
+        bloomPass.strength = 0.8;
+        bloomPass.radius = 0.8;
+        bloomPass.threshold = 0;
+        Graph.postProcessingComposer().addPass(bloomPass);
+  </script>
+</body>
