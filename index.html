@@ -3,15 +3,22 @@
   <script src="https://unpkg.com/three"></script>
   <script src="https://unpkg.com/three-spritetext"></script>
   <script src="https://unpkg.com/3d-force-graph"></script>
+  <script src="//unpkg.com/dat.gui"></script>
 </head>
 
 <body>
   <div id="3d-graph"></div>
+
+  <div style="position: absolute; top: 0px; right: 0px;">
+    <img src="https://user-images.githubusercontent.com/17273646/275672823-3c09305a-d301-4bc7-8a3d-d1dbfd41a693.png" alt="Italian Trulli" style="margin: 8px; height:240 px; width: 300px;">
+  </div>
+
+  </div>
   <script type="importmap">{ "imports": { "three": "//unpkg.com/three/build/three.module.js" }}</script>
   <script type="module">
     import { UnrealBloomPass } from '//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-
+    
     const colors = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"]
     const Graph = ForceGraph3D()
       (document.getElementById('3d-graph'))
@@ -43,6 +50,18 @@
           node.fy = node.y;
           node.fz = node.z;
         })
+        .onNodeClick(node => {
+          var strWindowFeatures = "location=yes,height=570,width=520,scrollbars=yes,status=yes";
+          URL = "https://scholar.google.com/citations?user=" + node.id;
+          window.open(URL, "_blank", strWindowFeatures);
+        })
+        // .nodeThreeObject(node => {
+        //   const sprite = new SpriteText(node.name);
+        //   sprite.material.depthWrite = false; // make sprite background transparent
+        //   sprite.color = node.color;
+        //   sprite.textHeight = 8;
+        //   return sprite;
+        // })
         ;
 
         const bloomPass = new UnrealBloomPass();
@@ -50,5 +69,24 @@
         bloomPass.radius = 0.8;
         bloomPass.threshold = 0;
         Graph.postProcessingComposer().addPass(bloomPass);
+
+         // camera orbit
+        let angle = 0;
+        setInterval(() => {
+          Graph.cameraPosition({
+            x: distance * Math.sin(angle),
+            z: distance * Math.cos(angle)
+          });
+          angle += Math.PI / 300;
+        }, 10);
+
+
+        const Settings = function() {
+        this.redDistance = 20;
+        this.greenDistance = 20;
+        };
+        Graph.d3Force('charge').strength(-1300);
+       
+        
   </script>
 </body>
