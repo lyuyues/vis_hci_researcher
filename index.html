@@ -17,7 +17,7 @@
       Hide Link
     </button>
     <button id="rotationToggle" style="margin: 8px; height: 25px; width: 150px;">
-      Pause Rotation
+      Pause Orbit
     </button>
   </div>
 <div style="position: absolute; top: 0px; left: 10px;">
@@ -98,20 +98,19 @@
         let isRotationActive = true;
         document.getElementById('rotationToggle').addEventListener('click', event => {
           isRotationActive = !isRotationActive;
-          event.target.innerHTML = `${(isRotationActive ? 'Pause' : 'Resume')} Rotation`;
+          event.target.innerHTML = `${(isRotationActive ? 'Pause' : 'Resume')} Orbit`;
         });
 
         // camera orbit
-        let angle = 0;
+        let angle = 0.0;
         setInterval(() => {
           if (isRotationActive) {
             Graph.cameraPosition({
               x: distance * Math.sin(angle),
-              // z: distance * Math.cos(angle)
             });
-            angle += Math.PI / 30;
+            angle += Math.PI / 300;
           }
-        }, 10);
+        }, 1);
 
       var initFlag = false;
       var initNodes = [];
