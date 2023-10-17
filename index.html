@@ -34,10 +34,6 @@
     import { UnrealBloomPass } from '//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js';
   
     const colors = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"]
-    const highlightNodes = new Set();
-    const highlightLinks = new Set();
-    let hoverNode = null;
-    let selectedNodes = new Set();
     
         
     const Graph = ForceGraph3D()
@@ -77,7 +73,6 @@
           URL = "https://scholar.google.com/citations?user=" + node.id;
           window.open(URL, "_blank", strWindowFeatures);
         })
-        
         ;
 
       
@@ -86,7 +81,6 @@
         bloomPass.radius = 0.8;
         bloomPass.threshold = 0;
         Graph.postProcessingComposer().addPass(bloomPass);
-
         Graph.d3Force('charge').strength(-1000);
         // Attach the event handler after the DOM has loaded
         window.addEventListener('DOMContentLoaded', (event) => {
@@ -123,7 +117,6 @@
           links.forEach(link => link.__lineObj.visible = true);
           return;
         }
-
         // matching the name of the node
         var ifMatched = false;
         nodes.forEach((node, idx) => {
