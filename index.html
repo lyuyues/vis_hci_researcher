@@ -9,41 +9,63 @@
 <body>
   <div id="3d-graph"></div>
 
-  <div style="position: absolute; top: 0px; right: 0px;">
+  <!-- <div style="position: absolute; top: 0px; right: 0px;">
     <img src="https://user-images.githubusercontent.com/17273646/275672823-3c09305a-d301-4bc7-8a3d-d1dbfd41a693.png" alt="Italian Trulli" style="margin: 8px; height:240 px; width: 300px;">
+  </div> -->
+  <div style="position: absolute; top: 5px; right: 5px;">
+    <button id="animationToggle" style="margin: 8px; height: 25px; width: 150px;">
+      Hide Link
+    </button>
+    <!-- <button id="rotationToggle" style="margin: 8px; height: 25px; width: 150px;">
+      Pause Rotation
+    </button> -->
   </div>
+<div style="position: absolute; top: 0px; left: 10px;">
+    <form></form>
+    <label for="search" style= "color: white">Search:</label><br>
+    <input type="text" id="search" name="search">
+    </form>
+</div>
 
-  </div>
+<div id="3d-graph"></div>
   <script type="importmap">{ "imports": { "three": "//unpkg.com/three/build/three.module.js" }}</script>
+
   <script type="module">
     import { UnrealBloomPass } from '//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js';
-
-    
+  
     const colors = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"]
+    const highlightNodes = new Set();
+    const highlightLinks = new Set();
+    let hoverNode = null;
+    let selectedNodes = new Set();
+    
+        
     const Graph = ForceGraph3D()
       (document.getElementById('3d-graph'))
         .backgroundColor('#000003')
         .jsonUrl('data.json')
+        .nodeThreeObjectExtend(true)
         .nodeLabel(node => {
-          return node.name + '<br>' + node.citedby.toString() + ' citations<br>' + node.pubnum + ' publications'
+          return node.name + '<br>' + node.citedby.toString() + ' citations<br>' + node.pubnum + ' publications<br>' + node.hindex + ' hindex'
         })
-        .nodeThreeObject(node => 
+        .nodeThreeObject(node =>
           new THREE.Mesh(
             node.academic ?
-              new THREE.SphereGeometry((node.citedby) / 2000) :
-              new THREE.BoxGeometry((node.citedby) / 2000, (node.citedby) / 2000, (node.citedby) / 2000),
+              new THREE.SphereGeometry((node.hindex * node.hindex / 100)) :
+              new THREE.BoxGeometry((node.hindex * node.hindex / 100), (node.hindex * node.hindex / 100), (node.hindex * node.hindex / 100)),
             new THREE.MeshLambertMaterial({
               color: colors[node.group],
               transparent: true,
               opacity: 0.75
-            })
-          ))
+            }) 
+          )
+        )
         .linkOpacity(0.75)
         .linkLabel(link => {
           return link.value
         })
         .linkWidth(link => {
-          return link.value / 10
+          return link.value / 1000
         })
         .onNodeDragEnd(node => {
           node.fx = node.x;
@@ -55,38 +77,80 @@
           URL = "https://scholar.google.com/citations?user=" + node.id;
           window.open(URL, "_blank", strWindowFeatures);
         })
-        // .nodeThreeObject(node => {
-        //   const sprite = new SpriteText(node.name);
-        //   sprite.material.depthWrite = false; // make sprite background transparent
-        //   sprite.color = node.color;
-        //   sprite.textHeight = 8;
-        //   return sprite;
-        // })
+        
         ;
 
+      
         const bloomPass = new UnrealBloomPass();
         bloomPass.strength = 0.8;
         bloomPass.radius = 0.8;
         bloomPass.threshold = 0;
         Graph.postProcessingComposer().addPass(bloomPass);
 
-         // camera orbit
-        let angle = 0;
-        setInterval(() => {
-          Graph.cameraPosition({
-            x: distance * Math.sin(angle),
-            z: distance * Math.cos(angle)
-          });
-          angle += Math.PI / 300;
-        }, 10);
+        Graph.d3Force('charge').strength(-1000);
+        // Attach the event handler after the DOM has loaded
+        window.addEventListener('DOMContentLoaded', (event) => {
+        console.log("DOM fully loaded and parsed");
+        document.getElementById('search').addEventListener('change', (e) => {
+            searchNodes(e.target.value);
+        });
+        });
+        let isLinkActive = true;
+        document.getElementById('animationToggle').addEventListener('click', event => {
+          isLinkActive = !isLinkActive;
+          event.target.innerHTML = `${(isLinkActive ? 'Hide' : 'Unhide')} Link`;
+          isLinkActive == true? Graph.linkOpacity(0.75):Graph.linkOpacity(0);
+        });
 
+      var initFlag = false;
+      var initNodes = [];
+      var initLinks = [];
+      function searchNodes(val) {
+        if (!initFlag){
+          initNodes = Graph.graphData().nodes;
+          initLinks = Graph.graphData().links;
+          initFlag = true;
+        }
 
-        const Settings = function() {
-        this.redDistance = 20;
-        this.greenDistance = 20;
-        };
-        Graph.d3Force('charge').strength(-1300);
-       
+        let { nodes, links } = Graph.graphData();
         
+        if (val == "")
+        {
+          Graph.graphData({'nodes': initNodes, 'links': initLinks });
+          nodes.forEach(node => {
+            node.__threeObj.visible = true;
+          })    
+          links.forEach(link => link.__lineObj.visible = true);
+          return;
+        }
+
+        // matching the name of the node
+        var ifMatched = false;
+        nodes.forEach((node, idx) => {
+          if (!node.name.toLowerCase().includes(val.toLowerCase())) {
+            console.log("match" + node.name);
+            node.__threeObj.visible = false;
+            // links = links.filter(l => l.source !== node && l.target !== node); // Remove links attached to node
+            links.forEach((link, idx) => {
+              if (link.target != node && link.source != node)
+              {
+                link.__lineObj.visible = false;
+              }
+              else
+              {
+                console.log("link is exiting ");
+              }
+            });     
+          }
+          else{
+            ifMatched = ture;
+          }
+        });
+        if (ifMatched)
+        {
+          window.alert("Did no find researcher named " + val);
+        }
+        
+      }
   </script>
 </body>
