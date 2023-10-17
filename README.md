@@ -3,7 +3,7 @@
 ```python
 python -m http.server 9000
 ```
-### Visualization of top 2000 researchers in Human-computer interaction co-authorship network.
+### Visualization of top 2000 researchers in citation in Human-computer interaction co-authorship network.
 
 Feature search is undergoing.
 
