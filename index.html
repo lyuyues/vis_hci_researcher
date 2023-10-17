@@ -16,9 +16,9 @@
     <button id="animationToggle" style="margin: 8px; height: 25px; width: 150px;">
       Hide Link
     </button>
-    <!-- <button id="rotationToggle" style="margin: 8px; height: 25px; width: 150px;">
+    <button id="rotationToggle" style="margin: 8px; height: 25px; width: 150px;">
       Pause Rotation
-    </button> -->
+    </button>
   </div>
 <div style="position: absolute; top: 0px; left: 10px;">
     <form></form>
@@ -34,7 +34,7 @@
     import { UnrealBloomPass } from '//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js';
   
     const colors = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"]
-    
+    const distance = 1400;
         
     const Graph = ForceGraph3D()
       (document.getElementById('3d-graph'))
@@ -95,6 +95,23 @@
           event.target.innerHTML = `${(isLinkActive ? 'Hide' : 'Unhide')} Link`;
           isLinkActive == true? Graph.linkOpacity(0.75):Graph.linkOpacity(0);
         });
+        let isRotationActive = true;
+        document.getElementById('rotationToggle').addEventListener('click', event => {
+          isRotationActive = !isRotationActive;
+          event.target.innerHTML = `${(isRotationActive ? 'Pause' : 'Resume')} Rotation`;
+        });
+
+        // camera orbit
+        let angle = 0;
+        setInterval(() => {
+          if (isRotationActive) {
+            Graph.cameraPosition({
+              x: distance * Math.sin(angle),
+              // z: distance * Math.cos(angle)
+            });
+            angle += Math.PI / 30;
+          }
+        }, 10);
 
       var initFlag = false;
       var initNodes = [];
